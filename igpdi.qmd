@@ -1,0 +1,136 @@
+---
+title: "IGP-DI: Série Econômica Real do Brasil (2015–2024)"
+format: html
+editor: visual
+---
+
+### 📊 **Introdução**
+
+Este site apresenta uma análise da evolução do Índice Geral de Preços – Disponibilidade Interna (IGP-DI) no Brasil entre 2015 e 2024, com base em dados reais fornecidos pelo Banco Central do Brasil (via Sistema Gerenciador de Séries Temporais – SGS).
+
+### **📌 O que é o IGP-DI?**
+
+É um dos índices de inflação mais amplos e relevantes do país, influenciando contratos, reajustes e decisões econômicas em diversos setores.
+
+O IGP-DI (Índice Geral de Preços – Disponibilidade Interna) é calculado mensalmente pela Fundação Getulio Vargas (FGV) e mede a variação de preços desde a produção até o consumidor final.
+
+**🧩 Composição do índice:**
+
+🔹 IPA-DI (60%) – preços no atacado
+
+🔹 IPC-DI (30%) – preços ao consumidor
+
+🔹 INCC-DI (10%) – custo da construção civil
+
+**🎯 Aplicações do IGP-DI:**
+
+🔸 Reajuste de contratos e aluguéis
+
+🔸 Análise de inflação ampla (além do IPCA)
+
+🔸 Instrumento para políticas econômicas
+
+### Gráfico da evolução do IGP-DI Brasil (2015–2024):
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: load-packages
+#| include: false
+library(rbcb)
+library(tidyverse)
+library(lubridate)
+
+if (!requireNamespace("gganimate", quietly = TRUE)) {
+  install.packages("gganimate", repos = "https://cloud.r-project.org/")
+}
+library(gganimate)
+
+if (!requireNamespace("gifski", quietly = TRUE)) {
+  install.packages("gifski", repos = "https://cloud.r-project.org/")
+}
+library(gifski)
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| label: grafico-igpdi
+#| results: 'asis'
+
+library(ggplot2)
+library(gganimate)
+library(rbcb)
+library(tidyverse)
+library(lubridate)
+
+# Baixar dados mensais do IGP-DI (%)
+codigo_igpdi <- 27815
+igpdi_mensal <- get_series(codigo_igpdi, start_date = "2015-01-01", end_date = "2024-12-31") %>%
+  rename(data = date, valor = `27815`) %>%
+  mutate(ano = year(data))
+
+# Calcular acumulado anual (somando as variações mensais)
+igpdi_anual <- igpdi_mensal %>%
+  group_by(ano) %>%
+  summarise(igpdi_acumulado = sum(valor, na.rm = TRUE)) %>%
+  filter(ano <= 2024)
+
+grafico_igpdi <- ggplot(igpdi_anual, aes(x = ano, y = igpdi_acumulado)) +
+  geom_line(color = "darkgreen", size = 1) +
+  geom_point(color = "darkgreen", size = 3) +
+  scale_x_continuous(breaks = seq(2015, 2024, by = 1)) +
+  scale_y_continuous(labels = scales::label_percent(scale = 0.000000001)) +
+  labs(
+    title = "Evolução do IGP-DI no Brasil (2015–2024)",
+    x = "Ano",
+    y = "Variação Acumulada (%)"
+  ) +
+  theme_minimal() +
+  transition_reveal(ano)
+
+
+# Salvar como GIF
+anim_save("igpdi_animado.gif", grafico_igpdi, renderer = gifski_renderer())
+
+# Exibir no HTML
+cat('![](igpdi_animado.gif)')
+```
+
+### 📈 Explicação do Gráfico
+
+O gráfico acima mostra a variação acumulada anual do IGP-DI no Brasil entre 2015 e 2024, ou seja, a soma das variações mensais de cada ano.
+
+#### 📌 Destaque Econômico:
+
+🟢 2020 e 2021: Ocorreu fortes altas no IGP-DI, com variações anuais acima de 20%. Esse comportamento foi impulsionado pela:
+
+-   A disparada dos preços de commodities (como soja, minério de ferro e petróleo).
+
+-   A forte desvalorização do real frente ao dólar.
+
+-   Efeitos da pandemia de COVID-19, que desorganizaram cadeias de suprimento e aumentaram custos.
+
+🟡 2022 a 2024: Desaceleração da inflação, com variações acumuladas positivas, porém muito menores (em torno de 3% a 5% ao ano). Isso se deve a:
+
+-   Adoção de políticas monetárias mais restritivas, como o aumento da taxa Selic.
+
+-   Reversão parcial nos preços do atacado.
+
+-   Estabilização do câmbio e da economia no cenário pós-pandemia.
+
+⚠️ Importante: Não houve deflação nesse período — ou seja, os preços continuaram subindo, mas em um ritmo mais lento do que nos anos anteriores.
+
+### 💡 Considerações Finais
+
+A análise do IGP-DI é fundamental para entender a inflação em diferentes setores da economia. Ao incorporar preços no atacado, no consumidor e na construção civil, o IGP-DI oferece uma visão ampla e estratégica da dinâmica inflacionária brasileira.
+
+Esse acompanhamento é útil para:
+
+🏢 Empresas ajustarem contratos
+
+📊 Investidores avaliarem cenários macroeconômicos
+
+🏛️ Governos formularem políticas públicas baseadas em pressões inflacionárias
